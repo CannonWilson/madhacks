@@ -1,22 +1,48 @@
-import requests
+import time
 import json
+import pandas as pd
+from utils import MODELS, get_model_response, get_win_rate
 
-response = requests.post(
-  url="https://openrouter.ai/api/v1/chat/completions",
-  headers={
-    "Authorization": f"Bearer {'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'}",
-    # "HTTP-Referer": f"{YOUR_SITE_URL}", # Optional, for including your app on openrouter.ai rankings.
-    # "X-Title": f"{YOUR_APP_NAME}", # Optional. Shows in rankings on openrouter.ai.
-  },
-  data=json.dumps({
-    "model": "nousresearch/hermes-3-llama-3.1-405b:free", # Optional
-    "messages": [
-      {
-        "role": "user",
-        "content": "Please aggregate the following data from sales reports and summarize the total sales per region:\n'Region, Sales\nNorth, 1000\nSouth, 1500\nNorth, 1200\nEast, 800\nSouth, 1300\nWest, 950'"
-      }
-    ]
-  })
-)
+# Load the tasks dataset
+with open("tasks.json", "r") as file:
+    dataset = json.load(file)
 
-print(response.json())
+# Create empty dataframe to record experiment data
+columns = []
+for model in MODELS:
+    for metric_name in ["price", "latency", "win_rate"]:
+        columns.append(f"{model}:{metric_name}")
+df = pd.DataFrame(columns=columns)
+
+# Run experiment
+for task in dataset:
+    new_row = {}
+    for model in MODELS:
+
+        # Time how long it takes this model to answer the task prompt
+        start = time.time()
+        response = get_model_response(model, task["prompt"])
+        end = time.time()
+
+        # Get info about model response for task
+        res_json = response.json()
+        model_cost = (
+            model.input_cost * res_json["usage"]["prompt_tokens"]
+            + model.output_cost * res_json["usage"]["completion_tokens"]
+        )
+        model_latency = end - start
+
+        # Get win rate compared to reference model
+        win_rate = get_win_rate(
+            model=model,
+            model_output=res_json["choices"][0]["message"]["content"],
+            prompt=task["prompt"],
+        )
+
+    # new_row[f"{model}:latency"] = end-start
+    # new_row[f"{model}:price"] =
+    # res_json = response.json()
+    # df.loc[len(df)] =
+    # latencies[task["uid"]][model] = end - start
+# outputs[task["uid"]][model] = res_json["choices"][0]["message"]["content"]
+# tokens[task["uid"]][model] = res_json["usage"]["total_tokens"]

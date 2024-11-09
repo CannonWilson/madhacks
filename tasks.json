@@ -1,12 +1,23 @@
 [
     {
-        "uid" : 1,
-        "modality" : "text",
-        "category" : "translation",
-        "task_description" : "Realtime english to spanish text translation for introductory Spanish class",
-        "prompt" : "Please translate this English sentence to Spanish: 'Hola! Como se llama?'",
-        "natural_language_preferences" : "The most important thing is getting quick feedback, ideally less than 1 second. The translation should be accurate but nuance doesn't matter as long as the grammar and vocab are correct. Cheaper is better!",
-        "price_preference" : 4,
+        "uid": 0,
+        "modality": "text",
+        "category": "data processing",
+        "task_description": "Aggregate and summarize data from multiple sources into a comprehensive report.",
+        "prompt": "Please aggregate the following data from sales reports and summarize the total sales per region:\n\n'Region, Sales\nNorth, 1000\nSouth, 1500\nNorth, 1200\nEast, 800\nSouth, 1300\nWest, 950'",
+        "natural_language_preferences": "The summary should clearly present the total sales by region in a structured format, making it easy to compare. Accuracy is essential, as incorrect aggregation could lead to misleading insights. Speed is important but not as critical as accuracy. Budget is moderate.",
+        "price_preference": 3,
+        "latency_preference": 3,
+        "accuracy_preference": 5
+    },
+    {
+        "uid": 1,
+        "modality": "text",
+        "category": "translation",
+        "task_description": "Realtime english to spanish text translation for introductory Spanish class",
+        "prompt": "Please translate this English sentence to Spanish: 'Hola! Como se llama?'",
+        "natural_language_preferences": "The most important thing is getting quick feedback, ideally less than 1 second. The translation should be accurate but nuance doesn't matter as long as the grammar and vocab are correct. Cheaper is better!",
+        "price_preference": 4,
         "latency_preference": 5,
         "accuracy_preference": 2
     },
@@ -220,13 +231,13 @@
         "accuracy_preference": 5
     },
     {
-        "uid" : 21,
-        "modality" : "text",
-        "category" : "scheduling/planning",
-        "task_description" : "Generate a project schedule for a website development project including milestones and deadlines",
-        "prompt" : "Please create a timeline for a website development project with key phases like planning, design, development, testing, and launch. Assume the project starts next month and should be completed within six months.",
-        "natural_language_preferences" : "The schedule should be realistic with clear milestone breakdowns. Timeliness is preferred but not critical; a higher focus on accuracy is ideal. A moderate budget is available.",
-        "price_preference" : 3,
+        "uid": 21,
+        "modality": "text",
+        "category": "scheduling/planning",
+        "task_description": "Generate a project schedule for a website development project including milestones and deadlines",
+        "prompt": "Please create a timeline for a website development project with key phases like planning, design, development, testing, and launch. Assume the project starts next month and should be completed within six months.",
+        "natural_language_preferences": "The schedule should be realistic with clear milestone breakdowns. Timeliness is preferred but not critical; a higher focus on accuracy is ideal. A moderate budget is available.",
+        "price_preference": 3,
         "latency_preference": 2,
         "accuracy_preference": 5
     },
@@ -273,16 +284,5 @@
         "price_preference": 3,
         "latency_preference": 3,
         "accuracy_preference": 4
-    },
-    {
-        "uid": 26,
-        "modality": "text",
-        "category": "data processing",
-        "task_description": "Aggregate and summarize data from multiple sources into a comprehensive report.",
-        "prompt": "Please aggregate the following data from sales reports and summarize the total sales per region:\n\n'Region, Sales\nNorth, 1000\nSouth, 1500\nNorth, 1200\nEast, 800\nSouth, 1300\nWest, 950'",
-        "natural_language_preferences": "The summary should clearly present the total sales by region in a structured format, making it easy to compare. Accuracy is essential, as incorrect aggregation could lead to misleading insights. Speed is important but not as critical as accuracy. Budget is moderate.",
-        "price_preference": 3,
-        "latency_preference": 3,
-        "accuracy_preference": 5
     }
 ]

@@ -130,6 +130,23 @@ Analysis:
 {analysis}
 """
 
+_HUMAN_COMPARISON_PROMPT = """
+======
+Given the prompt below and the output of Model 1 and Model 2, type
+1 and hit enter if you think Model 1 did a better job or type 2 and
+hit enter if you think Model 2 did a better job.
+
+Prompt:
+{prompt}
+
+Model 1 Output:
+{model_1_output}
+
+Model 2 Output:
+{model_2_output}
+======
+"""
+
 # A hyperparameter, how many times candidate model output should be compared to the
 # reference model output for each prompt. Higher number increases quality of comparison
 # but increases costs
@@ -154,15 +171,16 @@ def compare_model_to_reference(
     reference_response = get_model_response(REFERENCE_MODEL, prompt)
     reference_output = get_output_from_response(reference_response)
 
-    # Record the results of the comparison, stores whether candidate
-    # model beat reference at that iteration
-    results: list[bool] = []
+    # Record the results of the comparison according to the judge model/human decision, stores
+    # whether candidate model beat reference at that iteration
+    judge_results: list[bool] = []
+    human_results: list[bool] = []
 
-    while len(results) < _NUM_COMPARISONS:
+    while len(judge_results) < _NUM_COMPARISONS:
 
         # Switch the order of candidate/reference model at each iteration to combat
         # order bias
-        is_candidate_model_1 = len(results) % 2 == 0
+        is_candidate_model_1 = len(judge_results) % 2 == 0
         model_1_output, model_2_output = (
             (candidate_model_output, reference_output)
             if is_candidate_model_1
@@ -185,25 +203,42 @@ def compare_model_to_reference(
         )
         simplified_output = get_output_from_response(simplified_response)
 
-        # Model 1 won
-        if "1" in simplified_output:
-            if is_candidate_model_1:
-                results.append(True)
-            else:
-                results.append(False)
+        # Determine the winner from the judge model's response
+        judge_winner = (
+            "1"
+            if "1" in simplified_output
+            else "2" if "2" in simplified_output else None
+        )
 
-        # Model 2 won
-        elif "2" in simplified_output:
-            if is_candidate_model_1:
-                results.append(False)
-            else:
-                results.append(True)
+        # If the judge model has decided, append the result
+        if judge_winner:
 
-        # Decision wasn't clear, try again without declaring a winner
+            judge_results.append(
+                is_candidate_model_1
+                if judge_winner == "1"
+                else not is_candidate_model_1
+            )
+
+            # Prompt the human for their decision
+            print(_HUMAN_COMPARISON_PROMPT)
+            human_decision = None
+            while human_decision not in ["1", "2"]:
+                human_decision = input()
+                if human_decision not in ["1", "2"]:
+                    print("Invalid input. Please enter '1' or '2'.")
+
+            human_results.append(
+                is_candidate_model_1
+                if human_decision == "1"
+                else not is_candidate_model_1
+            )
+
+        # Judge model's decision wasn't clear, try again without declaring a winner
         else:
             continue
 
-    # results stores True values when candidate model won, so count True's to get win_rate
-    win_rate = sum(results) / len(results)
+    # results store True values when candidate model won, so count True's to get win_rate
+    judge_win_rate = sum(judge_results) / len(judge_results)
+    human_win_rate = sum(human_results) / len(human_results)
 
-    return win_rate
+    return judge_win_rate, human_win_rate

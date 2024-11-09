@@ -71,8 +71,8 @@ def get_model_response(model: Model, prompt: str) -> requests.Response:
     Sends a prompt to the OpenRouter API and retrieves the response from the specified model.
 
     Returns:
-        requests.Response: The response object returned by the OpenRouter API, which contains the generated
-            HTTP response. Check result of this function with .json() or .status_code
+        The HTTP response object returned by the OpenRouter API. Check result of this function
+            with .json() or .status_code
     """
 
     return requests.post(
@@ -82,15 +82,128 @@ def get_model_response(model: Model, prompt: str) -> requests.Response:
         },
         data=json.dumps(
             {
-                "model": model["name"],
+                "model": model.name,
                 "messages": [{"role": "user", "content": prompt}],
             }
         ),
     )
 
 
-def get_win_rate(model: Model, model_output: str, prompt: str):
+def get_output_from_response(response: requests.Response):
+    res_json = response.json()
+    res_json["choices"][0]["message"]["content"]
+
+
+# Reference model should be competitive with candidate, shouldn't always win/lose
+REFERENCE_MODEL = Model(
+    name="openai/gpt-3.5-turbo",
+    input_cost=0.5 / M_TOKENS,
+    output_cost=1.5 / M_TOKENS,
+)
+
+# Same judge model is used as in LLM-as-judge paper, should be very reliable and accurate
+JUDGE_MODEL = Model(
+    name="openai/gpt-4",
+    input_cost=30 / M_TOKENS,
+    output_cost=60 / M_TOKENS,
+)
+
+
+_JUDGE_MODEL_COMPARISON_PROMPT = """
+Please compare the two following responses to the same prompt. In your comparison, evaluate the quality,
+relevance, clarity, and completeness of the responses. Choose the response that you find superior based
+on these criteria, and explain why it is better in terms of content, structure, and overall usefulness."
+
+Model 1 Output:
+{model_1_output}
+
+Model 2 Output:
+{model_2_output}
+"""
+
+_JUDGE_MODEL_OUTPUT_PROMPT = """
+Given the analysis below, decide which model performed better at addressing the prompt. Your answer should
+only be "Model 1" if the analysis indicates that Model 1 did a better job or "Model 2" if Model 2 performed
+better. Please output only the name of the model with no additional text.
+
+Analysis:
+{analysis}
+"""
+
+# A hyperparameter, how many times candidate model output should be compared to the
+# reference model output for each prompt. Higher number increases quality of comparison
+# but increases costs
+_NUM_COMPARISONS = 6
+
+
+def compare_model_to_reference(
+    candidate_model: Model, candidate_model_output: str, prompt: str
+) -> float:
     """
-    TODO
+    Use the judge model to compare the candidate model output to the reference model output
+
+    It would be interesting to see the cost breakdown on how much this process costs
+    and how much of a benefit we see in the quality of the performance.
+
+    Returns:
+        win_rate: the % of time the judge model prefers the candidate model's output to the reference
+            model's output for the given prompt
     """
-    pass
+
+    # Get the reference model response
+    reference_response = get_model_response(REFERENCE_MODEL, prompt)
+    reference_output = get_output_from_response(reference_response)
+
+    # Record the results of the comparison, stores whether candidate
+    # model beat reference at that iteration
+    results: list[bool] = []
+
+    while len(results) < _NUM_COMPARISONS:
+
+        # Switch the order of candidate/reference model at each iteration to combat
+        # order bias
+        is_candidate_model_1 = len(results) % 2 == 0
+        model_1_output, model_2_output = (
+            (candidate_model_output, reference_output)
+            if is_candidate_model_1
+            else (reference_output, candidate_model_output)
+        )
+
+        # Use the judge model to compare outputs and determine which is preferred
+        judge_response = get_model_response(
+            JUDGE_MODEL,
+            _JUDGE_MODEL_COMPARISON_PROMPT.format(
+                model_1_output=model_1_output, model_2_output=model_2_output
+            ),
+        )
+        judge_response_output = get_output_from_response(judge_response)
+
+        # Ask the judge model to simplify its comparison to just "Model 1" or "Model 2"
+        simplified_response = get_model_response(
+            JUDGE_MODEL,  # using a simpler model here would help save money
+            _JUDGE_MODEL_OUTPUT_PROMPT.format(analysis=judge_response_output),
+        )
+        simplified_output = get_output_from_response(simplified_response)
+
+        # Model 1 won
+        if "1" in simplified_output:
+            if is_candidate_model_1:
+                results.append(True)
+            else:
+                results.append(False)
+
+        # Model 2 won
+        elif "2" in simplified_output:
+            if is_candidate_model_1:
+                results.append(False)
+            else:
+                results.append(True)
+
+        # Decision wasn't clear, try again without declaring a winner
+        else:
+            continue
+
+    # results stores True values when candidate model won, so count True's to get win_rate
+    win_rate = sum(results) / len(results)
+
+    return win_rate

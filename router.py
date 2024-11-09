@@ -1,7 +1,7 @@
 import time
 import json
 import pandas as pd
-from utils import MODELS, get_model_response, get_win_rate
+from utils import MODELS, get_model_response, compare_model_to_reference, get_output_from_response
 
 # Load the tasks dataset
 with open("tasks.json", "r") as file:
@@ -32,10 +32,10 @@ for task in dataset:
         )
         model_latency = end - start
 
-        # Get win rate compared to reference model
-        win_rate = get_win_rate(
+        # Compare model to reference model
+        compare_model_to_reference(
             model=model,
-            model_output=res_json["choices"][0]["message"]["content"],
+            model_output=get_output_from_response(response),
             prompt=task["prompt"],
         )
 

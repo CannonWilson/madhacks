@@ -204,11 +204,12 @@ def compare_model_to_reference(
         simplified_output = get_output_from_response(simplified_response)
 
         # Determine the winner from the judge model's response
-        judge_winner = (
-            "1"
-            if "1" in simplified_output
-            else "2" if "2" in simplified_output else None
-        )
+        if "1" in simplified_output and "2" not in simplified_output:
+            judge_winner = "1"
+        elif "2" in simplified_output and "1" not in simplified_output:
+            judge_winner = "2"
+        else:
+            judge_winner = None
 
         # If the judge model has decided, append the result
         if judge_winner:
@@ -225,7 +226,7 @@ def compare_model_to_reference(
             while human_decision not in ["1", "2"]:
                 human_decision = input()
                 if human_decision not in ["1", "2"]:
-                    print("Invalid input. Please enter '1' or '2'.")
+                    print("Invalid input. Please enter '1' or '2'")
 
             human_results.append(
                 is_candidate_model_1

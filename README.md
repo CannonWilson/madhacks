@@ -12,31 +12,10 @@ This project develops an intelligent router designed to direct user prompts to t
 4. **Model Ranking:** Each cluster center has associated model rankings based on three dimensions (performance, latency, cost). User preferences are used to select the best model from these rankings.
 5. **Update Mechanism:** When updating clusters, new task embeddings are used for clustering. Each model is then re-ranked using a judge model in comparison to a reference model, with associated costs and latencies recorded.
 
-## Major Tasks
+### LLM Ranks
 
-### Dataset
+1. **Task/Prompt Collection:** Creation of a dataset consisting of various tasks/prompts.
+2. **Model Interaction:** Integration with openrouter.ai to call all 5 models, including Claude-2, ChatGPT-3.5-turbo, ChatGPT-4, Meta-Llama34b and Meta-Llama-2-70b.
+3. **Ranking Development:** Establishment of human rankings and LLM judges for all models across each task. We avoid position bias by letting the judge model judge the performances of two LLMs 6 times. Ties will be skipped.
 
-- **Task/Prompt Collection:** Creation of a dataset consisting of various tasks/prompts.
-- **Model Interaction:** Integration with openrouter.ai to call all 11 models mentioned in the routerbench paper.
-- **Ranking Development:** Establishment of human rankings for all models across each task.
 
-### Model Rankings
-
-- **Task Description Model Selection:** Decide on the task description model, options include LLAMA, fast claude, etc.
-- **Embedding Model Decision:** Choose an appropriate embedding model such as DistilBERT or AlBERT.
-- **Clustering Implementation:** Evaluate and possibly adapt clustering methods like k-means and DBSCAN.
-- **Prompt Recording:** Document prompts for cluster centers.
-- **Judging System:** Develop a system to assess prompt suitability using a judge model while also recording cost and latency.
-- **Model Selection:** Implement a model selection system that incorporates task/prompt rankings and user preferences.
-
-### Deployment
-
-- **Containerization:** Package the system into a container for deployment.
-- **Cloud Deployment:** Deploy the system on Google Cloud, equipped with a cron job for regular updates.
-
-## Installation
-
-```bash
-git clone https://github.com/yourgithubrepo/intelligent-routing-system.git
-cd intelligent-routing-system
-# Follow setup instructions here

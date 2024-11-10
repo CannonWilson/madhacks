@@ -14,7 +14,7 @@ This project develops an intelligent router designed to direct user prompts to t
 
 ### LLM Ranks
 
-1. **Task/Prompt Collection:** Creation of a dataset consisting of various tasks/prompts.
+1. **Task/Prompt Collection:** Creation of a dataset consisting of prompts from 25 tasks.
 2. **Model Interaction:** Integration with openrouter.ai to call all 5 models, including Claude-2, ChatGPT-3.5-turbo, ChatGPT-4, Meta-Llama34b and Meta-Llama-2-70b.
 3. **Ranking Development:** Establishment of human rankings and LLM judges for all models across each task. We avoid position bias by letting the judge model judge the performances of two LLMs 6 times. Ties will be skipped.
 

@@ -2,20 +2,28 @@
 
 ## Project Overview
 
-This project develops an intelligent router designed to direct user prompts to the most suitable Large Language Model (LLM) based on performance, latency, and cost. The router analyzes the prompt, generates a task description using a language model, and subsequently selects the optimal model using a sophisticated ranking system.
+This project creates an advanced router to direct user prompts to the optimal Large Language Model (LLM) based on performance, latency, and cost considerations. The router analyzes each prompt, generates a task description using a language model, and selects the best model through a refined ranking system.
 
-### How It Works
+## Process
 
-1. **Prompt Reception:** Upon receiving a user prompt, it's passed to a designated language model that succinctly describes the task in natural language.
-2. **Task Embedding:** This description is converted into an embedding using an efficient variant of BERT (e.g., DistilBERT, AlBERT).
-3. **Clustering:** Task embeddings are clustered using algorithms like DBSCAN or k-means to identify the cluster with the closest center.
-4. **Model Ranking:** Each cluster center has associated model rankings based on three dimensions (performance, latency, cost). User preferences are used to select the best model from these rankings.
-5. **Update Mechanism:** When updating clusters, new task embeddings are used for clustering. Each model is then re-ranked using a judge model in comparison to a reference model, with associated costs and latencies recorded.
+Prompt Analysis: Each user prompt is processed by a language model that distills the task into a concise description.
+Task Embedding: This description is converted to an embedding via a lightweight BERT model (e.g., DistilBERT or ALBERT).
+Clustering: Task embeddings are clustered using methods like DBSCAN or k-means to match prompts with their nearest cluster centers.
+Model Selection: Based on user preferences, the router selects the top model for each cluster by evaluating performance, latency, and cost rankings.
+Dynamic Updating: New task embeddings trigger clustering updates. Models are re-ranked by a judge model compared against a reference model, capturing costs and latencies.
 
-### LLM Ranks
+## LLM Ranking Methodology
 
-1. **Task/Prompt Collection:** Creation of a dataset consisting of prompts from 25 tasks.
-2. **Model Interaction:** Integration with openrouter.ai to call all 5 models, including Claude-2, ChatGPT-3.5-turbo, ChatGPT-4, Meta-Llama34b and Meta-Llama-2-70b.
-3. **Ranking Development:** Establishment of human rankings and LLM judges for all models across each task. We avoid position bias by letting the judge model judge the performances of two LLMs 6 times. Ties will be skipped.
+Prompt Dataset: A diverse prompt dataset is compiled across 25 distinct tasks.
+Model Testing: Using OpenRouter, five models (Claude-2, ChatGPT-3.5-turbo, ChatGPT-4, Meta-LLaMA-34B, and Meta-LLaMA-2-70B) are evaluated for all prompts.
+Rank Scoring: Each model’s performance is evaluated by LLM judges and human raters to establish unbiased rankings. To mitigate position bias, each judge model evaluates two LLM outputs six times per task, disregarding ties.
 
+## Advancements Beyond Existing Methods
 
+This system extends current LLM routing approaches by incorporating dynamic embedding-based clustering with an adaptive model-ranking mechanism. This setup continuously refines model selection as new tasks emerge, optimizing user-specific parameters in real time. This combination of task clustering, embedding adaptation, and regular performance re-evaluation enables the router to support more nuanced, responsive model deployment across a wide range of use cases.
+
+## Results
+
+- Compiled a dataset of 25 realworld LLM applications by hand
+- Generated system for getting human rankings and judge LLM rankings for candidate models on each task
+- Created prompt -> task embedding pipeline that runs in 0.38 (describe task being performed for a prompt) + 0.06 (generate task embedding) = 0.44 seconds total ON A CPU. This pipeline running on a GPU would be both accurate and extremely fast.

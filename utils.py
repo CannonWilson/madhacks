@@ -91,7 +91,7 @@ def get_model_response(model: Model, prompt: str) -> requests.Response:
 
 def get_output_from_response(response: requests.Response):
     res_json = response.json()
-    res_json["choices"][0]["message"]["content"]
+    return res_json["choices"][0]["message"]["content"]
 
 
 # Reference model should be competitive with candidate, shouldn't always win/lose
@@ -123,8 +123,8 @@ Model 2 Output:
 
 _JUDGE_MODEL_OUTPUT_PROMPT = """
 Given the analysis below, decide which model performed better at addressing the prompt. Your answer should
-only be "Model 1" if the analysis indicates that Model 1 did a better job or "Model 2" if Model 2 performed
-better. Please output only the name of the model with no additional text.
+only be "Model 1" if the analysis indicates that Model 1 did a better job, "Model 2" if Model 2 performed
+better, or "Tie" if you cannot decide on the winner. Please output only the name of the model with no additional text.
 
 Analysis:
 {analysis}
@@ -133,8 +133,8 @@ Analysis:
 _HUMAN_COMPARISON_PROMPT = """
 ======
 Given the prompt below and the output of Model 1 and Model 2, type
-1 and hit enter if you think Model 1 did a better job or type 2 and
-hit enter if you think Model 2 did a better job.
+1 and hit enter if you think Model 1 did a better job, type 2 and
+hit enter if you think Model 2 did a better job, or type 3 and hit enter if you think that it is a tie. 
 
 Prompt:
 {prompt}
@@ -220,23 +220,18 @@ def compare_model_to_reference(
                 else not is_candidate_model_1
             )
 
-            # Prompt the human for their decision
-            print(_HUMAN_COMPARISON_PROMPT)
-            human_decision = None
-            while human_decision not in ["1", "2"]:
-                human_decision = input()
-                if human_decision not in ["1", "2"]:
-                    print("Invalid input. Please enter '1' or '2'")
+    # Prompt the human for their decision
+    print(_HUMAN_COMPARISON_PROMPT.format(prompt=prompt, model_1_output=model_1_output, model_2_output=model_2_output))
+    human_decision = None
+    while human_decision not in ["1", "2", "3"]:
+        human_decision = input()
+        if human_decision not in ["1", "2"]:
+            print("Invalid input. Please enter '1', '2', or '3'")
 
-            human_results.append(
-                is_candidate_model_1
-                if human_decision == "1"
-                else not is_candidate_model_1
-            )
-
-        # Judge model's decision wasn't clear, try again without declaring a winner
-        else:
-            continue
+    if human_decision == "1":
+        human_results.append(is_candidate_model_1)
+    elif human_decision == "2":
+        human_results.append(not is_candidate_model_1) 
 
     # results store True values when candidate model won, so count True's to get win_rate
     judge_win_rate = sum(judge_results) / len(judge_results)

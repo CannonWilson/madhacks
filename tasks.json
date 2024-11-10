@@ -15,7 +15,7 @@
         "modality": "text",
         "category": "translation",
         "task_description": "Realtime english to spanish text translation for introductory Spanish class",
-        "prompt": "Please translate this English sentence to Spanish: 'Hola! Como se llama?'",
+        "prompt": "Please translate this English sentence to Spanish: 'Hello! What is your name?'",
         "natural_language_preferences": "The most important thing is getting quick feedback, ideally less than 1 second. The translation should be accurate but nuance doesn't matter as long as the grammar and vocab are correct. Cheaper is better!",
         "price_preference": 4,
         "latency_preference": 5,

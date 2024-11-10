@@ -16,7 +16,7 @@ with open("tasks.json", "r") as file:
 columns = []
 for model in MODELS:
     for metric_name in ["price", "latency", "judge_win_rate", "human_win_rate"]:
-        columns.append(f"{model}:{metric_name}")
+        columns.append(f"{model.name}:{metric_name}")
 df = pd.DataFrame(columns=columns)
 
 # Run experiment
@@ -39,18 +39,19 @@ for task in dataset:
 
         # Compare model to reference model
         judge_win_rate, human_win_rate = compare_model_to_reference(
-            model=model,
-            model_output=get_output_from_response(response),
+            candidate_model=model,
+            candidate_model_output=get_output_from_response(response),
             prompt=task["prompt"],
         )
 
         # Save data
-        new_row[f"{model}:price"] = model_cost
-        new_row[f"{model}:latency"] = model_latency
-        new_row[f"{model}:judge_win_rate"] = judge_win_rate
-        new_row[f"{model}:human_win_rate"] = human_win_rate
+        new_row[f"{model.name}:price"] = model_cost
+        new_row[f"{model.name}:latency"] = model_latency
+        new_row[f"{model.name}:judge_win_rate"] = judge_win_rate
+        new_row[f"{model.name}:human_win_rate"] = human_win_rate
 
-    df = df.append(new_row, ignore_index=True)
+    # df = df._append(new_row, ignore_index=True)
+    df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
 
-# Save the results to a .csv file
-df.to_csv("results.csv", index=False)
+    # Save the results to a .csv file
+    df.to_csv("results.csv", mode='a', index=False)
